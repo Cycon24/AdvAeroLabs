@@ -245,6 +245,7 @@ def Mach_at_PR(Po_P, Gamma=1.4):
 
     '''
     return np.sqrt(((Po_P)**((Gamma-1)/Gamma) - 1)*2/(Gamma-1))
+
 # __________________________________________
 
 
