@@ -7,6 +7,7 @@ Created on Tue Sep 24 17:20:32 2024
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import GasDynamics as GD
 
 
 
