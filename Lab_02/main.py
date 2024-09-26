@@ -31,12 +31,13 @@ BarometricP     = float(df_2[4,1])                # inHg
 # Convert Values
 # =============================================================================
 # Convert into Imperial Units and absolute units (if needed)
-# BackPressure                          # Keep in psig
 InletTemp =  InletTemp *9/5 + 491.67    # Covnert to R
 OutletTemp = OutletTemp*9/5 + 491.67    # Covnert to R
 deltaP *= 0.0360912                     # Convert to psi [lbf/in^2]
 deltaP_ft2 = deltaP*(12/1)**2           # Convert to [lbf/ft^2]
 BarometricP *= 0.4911543448             # Convert t0 psia
+BackPressure_abs  = BackPressure + BarometricP # Convert to psia
+ProbePressure_abs = ProbePressure+ BarometricP # Convert to psia
 
 # =============================================================================
 # Make Calculations
@@ -60,21 +61,34 @@ R      = R_univ / MW_air    # [psi⋅ft3/lbm⋅°R] Gas Constant if  air
 
 # dP   =
 
-# Calculate density
-P_f = (ProbePressure[28,:]+BarometricP) # lbf/in^2
-rho_f = P_f / (R*OutletTemp)# [lbm/ft^3] - Fluid Density (needs calculated)
+# Calculate density (NOT SURE IF RIGHT)
+P_f = ProbePressure_abs[28,:] # lbf/in^2
+rho_f = P_f / (R*OutletTemp)# [lbm/ft^3] - Fluid Density (Needs verified)
 
 # Calculate Pressure Ratios
-Po = 85 # Total pressure was 85 psig
-PRs = ProbePressure/Po # TODO: is ProbePressure total? is this eqtn right idfk
+Po = 85 # Total pressure was 85 psig 
+PRs =   ProbePressure/Po # TODO: is ProbePressure total? is this eqtn right idfk
 PRs_e = ProbePressure[25,:]/Po
 PRs_b = ProbePressure[28,:]/Po
 
 # Calculate mass flow rate
 paran = (C_d/(np.sqrt(1-Beta**4)))
 sqrt  = np.sqrt(2*g_c*rho_f*deltaP_ft2)
-mdots = A_th*F_a*paran*sqrt
+mdots = A_th*F_a*paran*sqrt # [lbm/s]
 
+# Calculate theoretical mass flow when choked
+# NOT SURE IF CORRECT
+# May need to use shock relations
+# mdot_th = np.zeros(9)
+# for i, Ps in enumerate(BackPressure_abs):
+#     Pcrit = 0.5283*Po
+#     if Ps > Pcrit:
+#         # Not Choked Flow, find Mach number at exit plane with back pressure
+#         M = GD.Mach_at_PR(Po/Ps, Gamma=1.4)
+#         mdot_th[i] = GD.mdot(Po=Po, To=InletTemp[i], A=A_e,  Mach=M, Gamma=1.4, R=R) # [lbm/s]
+#     else:
+#         # choked flow, calculate at throat
+#         mdot_th[i] = GD.mdot(Po=Po, To=InletTemp[i], A=A_th, Mach=1, Gamma=1.4, R=R) # [lbm/s]
 
 # =============================================================================
 # # Plot Results
