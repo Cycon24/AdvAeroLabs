@@ -66,49 +66,100 @@ P_f = BarometricP #ProbePressure_abs[28,:] # lbf/in^2
 rho_f = P_f / (R*OutletTemp)# [lbm/ft^3] - Fluid Density (Needs verified)
 
 # Calculate Pressure Ratios
-Po = 85+BarometricP # Total pressure was 85 psig 
+Po = 85+BarometricP # psia, Total pressure was 85 psig 
 PRs =   ProbePressure_abs/Po # TODO: is ProbePressure total? is this eqtn right idfk
 PRs_e = ProbePressure_abs[25,:]/Po
 PRs_b = ProbePressure_abs[28,:]/Po
+
+# Define important pressure values
+# fe = Fully Expanded, ue = Under Expanded
+M_ue_sub, M_fe_sup = GD.Mach_at_A(A_e/A_th, Gamma=1.4)
+PR_fe = 1/GD.Po_P_ratio(M_fe_sup, Gamma=1.4) # P/Po
+PR_ue = 1/GD.Po_P_ratio(M_ue_sub, Gamma=1.4) # P/Po
+P_fe = PR_fe * Po
+P_ue = PR_ue * Po
+Pcrit = 0.5283*Po
 
 # Calculate mass flow rate
 paran = (C_d/(np.sqrt(1-Beta**4)))
 sqrt  = np.sqrt(2*g_c*rho_f*deltaP_ft2)
 mdots = A_th*F_a*paran*sqrt # [lbm/s]
 
+# 
+
+
+
 # Calculate theoretical mass flow when choked
 # NOT SURE IF CORRECT
 # May need to use shock relations
-mdot_th = np.zeros(9)
-for i, Ps in enumerate(ProbePressure_abs[28,:]):
-    Pcrit = 0.5283*Po
+mdot_the = np.zeros(9)
+# Finding it based on the exit pressure aka position 27?
+for i, Ps in enumerate(ProbePressure_abs[26,:]):
     # NEED TO FIND P/Po RATIO FOR THE AREA RATIO Ae/At, AND COMPARE
     # WITH THAT INSTEAD. THIS WILL TELL US IF THE NOZZLE IS CHOKED
     # AND THEN PCRIT WILL TELL US IF THE FLOW IS FULLY EXPANDED
-    # fe = Fully Expanded, ue = Under Expanded
-    M_ue_sub, M_fe_sup = GD.Mach_at_A(A_e/A_th, Gamma=1.4)
-    PR_fe = 1/GD.Po_P_ratio(M_fe_sup, Gamma=1.4) # P/Po
-    PR_ue = 1/GD.Po_P_ratio(M_ue_sub, Gamma=1.4) # P/Po
-    P_fe = PR_fe * Po
-    P_ue = PR_ue * Po
-    
-   
+
     if Ps > P_ue:
         print(i,' - Not Choked {:0.2f}'.format(Ps))
         # Not Choked Flow, find Mach number at exit plane with back pressure
         M = GD.Mach_at_PR(Po/Ps, Gamma=1.4)
-        mdot_th[i] = GD.mdot(Po=Po, To=InletTemp[i], A=A_e,  Mach=M, Gamma=1.4, R=R) # [lbm/s]
+        mdot_the[i] = GD.mdot(Po=Po, To=InletTemp[i], A=A_e,  Mach=M, Gamma=1.4, R=R) # [lbm/s]
     elif Ps > P_fe:
         # choked flow, But shock occurs in nozzle (not ful expand)
         print(i,' - Choked(ue) {:0.2f}'.format(Ps))
-        mdot_th[i] = GD.mdot(Po=Po, To=InletTemp[i], A=A_th, Mach=1, Gamma=1.4, R=R) # [lbm/s]
+        mdot_the[i] = GD.mdot(Po=Po, To=InletTemp[i], A=A_th, Mach=1, Gamma=1.4, R=R) # [lbm/s]
     else:
         # Choked and fully expanded flow
         print(i,' - Choked (fe) {:0.2f}'.format(Ps))
-        mdot_th[i] = GD.mdot(Po=Po, To=InletTemp[i], A=A_th, Mach=1, Gamma=1.4, R=R) # [lbm/s]
+        mdot_the[i] = GD.mdot(Po=Po, To=InletTemp[i], A=A_th, Mach=1, Gamma=1.4, R=R) # [lbm/s]
     
- # GOTTA FIND THROAT PRESSURE, THATS WHERE P_crit WILL COME INTO PLAY       
+ #c) GOTTA FIND THROAT PRESSURE, THATS WHERE P_crit WILL COME INTO PLAY       
+'''
+Maybe we can start by finding the theoretical Me based on Pb=Pe,
+and the Pb/Po ratio. 
+We then find the area ratio Ae/A* from this mach number
+Next, we know the area ratio Ae/At, and so we can find the ratio
+At/A*, this will give us Mach number at the throat and hence the
+pressure ratio at the throat
+
+the = theoretical
+th  = throat
+star = choked location
+'''  
+# for i, Pb in enumerate(BackPressure_abs):
+    
+#     # Subsonic Cases (Assuming Pe=Pb)
+#     Me_the = GD.Mach_at_PR(Po/BackPressure_abs, Gamma=1.4)
+#     A_stars = A_e/GD.A_ratio(Me_the, Gamma=1.4)
+    
+#     M_th =  np.zeros(9)
+#     for i, A_star in enumerate(A_stars):
+#         M_th[i], M_sup = GD.Mach_at_A(A_th/A_star, Gamma=1.4)
         
+#     P_th = Po/GD.Po_P_ratio(M_th, Gamma=1.4)
+P_th = np.zeros(9)
+for i, Pb in enumerate(BackPressure_abs):
+    if Pb > P_ue:
+        print(i,' - Not Choked {:0.2f}'.format(Pb)) 
+        # Not Choked Flow, find Mach number at exit plane with back pressure, (pe=pb)
+        # Subsonic Cases (Assuming Pe=Pb)
+        Me_the = GD.Mach_at_PR(Po/Pb, Gamma=1.4)
+        A_star = A_e/GD.A_ratio(Me_the, Gamma=1.4)
+
+        M_th, M_sup = GD.Mach_at_A(A_th/A_star, Gamma=1.4)
+        P_th[i] = Po/GD.Po_P_ratio(M_th, Gamma=1.4)
+        
+    elif Pb > P_fe:
+        # choked flow, But shock occurs in nozzle (not ful expand, pb /= pe)
+        print(i,' - Choked(ue) {:0.2f}'.format(Pb))
+        P_th[i] = Po/GD.Po_P_ratio(Mach=1, Gamma=1.4)
+    else:
+        # Choked and fully expanded flow (pe = pb)
+        print(i,' - Choked (fe) {:0.2f}'.format(Pb))
+        P_th[i] = Po/GD.Po_P_ratio(Mach=1, Gamma=1.4)
+     
+ 
+    
 # =============================================================================
 # # Plot Results
 plt.clf()
@@ -135,6 +186,9 @@ def normPressProfile_all(BackPressureArray, locs, PRsArray):
         normPressProfile_single(BackPressureArray[i], locs, PRsArray[:,i],True)
     # Plot Critical Pressure
     plt.plot([min(locs), max(locs)], [0.5283, 0.5283], label="Pb=P_crit")
+    plt.plot([min(locs), max(locs)], [PR_fe, PR_fe], label="Pb=P_fe")
+    plt.plot([min(locs), max(locs)], [PR_ue, PR_ue], label="Pb=P_ue")
+    plt.plot([locs[8], locs[8]], [0,1], '-k',label='Throat')
     plt.legend()
     plt.grid()
 
