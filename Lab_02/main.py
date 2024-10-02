@@ -10,13 +10,12 @@ import pandas as pd
 import GasDynamics as GD
 
 
-
 # =============================================================================
 # Retrieve and organize data
 # ============================================================================+
 # r'Lab_02/
-df_1 = pd.read_csv('AeroLab2_DataSheet.csv').to_numpy()
-df_2 = pd.read_csv('AeroLab2_DataSheet_02.csv').to_numpy()
+df_1 = pd.read_csv('Lab_02/AeroLab2_DataSheet.csv').to_numpy()
+df_2 = pd.read_csv('Lab_02/AeroLab2_DataSheet_02.csv').to_numpy()
 
 ProbePosition = np.array(df_1[1:,0], dtype=int)     # Integer
 ProbePressure = np.array(df_1[1:,1:], dtype=float)  # kPa
@@ -48,7 +47,8 @@ d_probe = 0.130             # [in] - Diameter of Probe
 d_e   = 0.2869              # [in] - Diameter of Nozzle Exit
 
 A_th  = np.pi*((d_th/2)**2 - (d_probe/2)**2)*(1/12)**2   # [ft^2] - Throat Area 
-A_e  =  np.pi*((d_e/2)**2  - (d_probe/2)**2)*(1/12)**2    # [ft^2] - Exit Area 
+A_e  =  np.pi*((d_e/2)**2  - (d_probe/2)**2)*(1/12)**2   # [ft^2] - Exit Area 
+A_orf = np.pi*((1.6255/2)**2)*(1/12)**2 # ft^2
 
 F_a   = 1.0                 # [NonDim] - Thermal Expansion Factor
 C_d   = 0.623               # [NonDim] - Discharge Coefficient
@@ -177,12 +177,12 @@ def normPressProfile_single(Pb, Poss, PRs, inParent=False):
         plt.plot(Poss, PRs)
         plt.xlim(-0.5, 2.5); plt.ylim(0, 6)
         plt.xlabel("Position (in.)"); plt.ylabel(r"$\dfrac{P}{P_0}$")
-        plt.grid()
+        plt.grid(); plt.tight_layout()
     
 def normPressProfile_all(BackPressureArray, locs, PRsArray):
     plt.figure(f"Normalized Pressure Profile (1a)")
     plt.title(f"Normalized Pressure Profile")
-    for i in range(8):
+    for i in range(9):
         normPressProfile_single(BackPressureArray[i], locs, PRsArray[:,i],True)
     # Plot Critical Pressure
     plt.plot([min(locs), max(locs)], [0.5283, 0.5283], label="Pb=P_crit")
@@ -190,7 +190,7 @@ def normPressProfile_all(BackPressureArray, locs, PRsArray):
     plt.plot([min(locs), max(locs)], [PR_ue, PR_ue], label="Pb=P_ue")
     plt.plot([locs[8], locs[8]], [0,1], '-k',label='Throat')
     plt.legend()
-    plt.grid()
+    plt.grid(); plt.tight_layout()
 
 # TODO: check this section, unsure but makes plot
 plt.figure("Normalized Exit Pressure vs Normalized Back Pressure (1b)")
@@ -199,7 +199,23 @@ plt.plot([0,1],[0,1], label='Pe=Pb')
 plt.xlabel('Pe/Po')
 plt.ylabel('Pb/Po')
 plt.legend()
-plt.grid()
+plt.grid(); plt.tight_layout()
+
+plt.figure("Theoretical vs Measured Throat Pressure (1c)")
+plt.plot(PRs_b, P_th, "k--", label="Theoretical")
+plt.plot(PRs_b, ProbePressure_abs[8], "k-", label="Measured")
+plt.xlim(0.1, 1); plt.ylim(50, 100)
+plt.xlabel("Pb/Po"); plt.ylabel("Throat Pressure (psia)")
+plt.legend(); plt.grid(); plt.tight_layout()
+
+plt.figure("Theoretical vs Measured Mass Flowrate (1e)")
+plt.plot(PRs_b, mdot_the, "k--", label="Theoretical")
+plt.plot(PRs_b, mdots, "k-", label="Measured")
+plt.axvline(PR_ue, color="tab:blue", linestyle="--", label="Theoretical Critical PR")
+plt.axvline(0.85, color="tab:blue", linestyle="-", label="Experimental Critical PR")
+plt.xlim(0.1, 1); plt.ylim(0.0007, 0.0015)
+plt.xlabel("Pb/Po"); plt.ylabel("Mass Flowrate (lbm/s)")
+plt.legend(); plt.grid(); plt.tight_layout()
 
 # can generate multiple plots here (comment out if working on dif. section)
 # for i in range(8):
