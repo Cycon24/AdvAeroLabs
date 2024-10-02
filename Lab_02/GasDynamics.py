@@ -90,7 +90,7 @@ def RHO_o_Rho(Mach, Gamma=1.4):
 def mdot(Po, To, A, Mach=1, Gamma=1.4, R=287):
     first = (Po*A/(np.sqrt(R*To))) *Mach*np.sqrt(Gamma)
     second = 1 + ((Gamma-1)/2)*(Mach**2)
-    power = -(Gamma+1)/(2*(Gamma-1))
+    power = (1+Gamma)/(2*(1-Gamma))
     return first*np.power(second, power)
 
 
