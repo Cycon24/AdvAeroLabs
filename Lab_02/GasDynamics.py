@@ -26,7 +26,8 @@ def rootsearch(f,a,b,dx):
     x2 = a + dx; f2 = f(x2)
     while np.sign(f1) == np.sign(f2):
         if x1 >= b: 
-            return 'x1={}'.format(x1),'b={}'.format(b)# None,None
+            print('Root Search not found between a={} b={}, with dx={}'.format(a, b, dx))
+            return None, None
         x1 = x2; f1 = f2
         x2 = x1 + dx; f2 = f(x2)
     return x1,x2
@@ -90,7 +91,7 @@ def RHO_o_Rho(Mach, Gamma=1.4):
 def mdot(Po, To, A, Mach=1, Gamma=1.4, R=287):
     first = (Po*A/(np.sqrt(R*To))) *Mach*np.sqrt(Gamma)
     second = 1 + ((Gamma-1)/2)*(Mach**2)
-    power = -(Gamma+1)/(2*(Gamma-1))
+    power = (1+Gamma)/(2*(1-Gamma))
     return first*np.power(second, power)
 
 
@@ -120,6 +121,20 @@ def Mach2_n(Mach1, Gamma=1.4):
     num = Mach1**2 + 2/(Gamma-1)
     den = -1 + (2*Gamma/(Gamma-1))*Mach1**2   
     return np.sqrt(num/den)
+
+# Redefine equations all based on M1 and Prop1:
+def T2_T1_n(Mach1, Gamma=1.4):
+    Mach2 = Mach2_n(Mach1, Gamma)
+    return TR_n(Mach1, Mach2, Gamma)
+
+def P2_P1_n(Mach1, Gamma=1.4):
+    Mach2 = Mach2_n(Mach1, Gamma)
+    return PR_n(Mach1, Mach2, Gamma)
+
+def Po2_Po1_n(Mach1, Gamma=1.4):
+    p2_p1 = P2_P1_n(Mach1, Gamma)
+    T2_T1 = T2_T1_n(Mach1, Gamma)
+    return p2_p1*(1/T2_T1)**(Gamma/(Gamma-1))
 
 # ---- Stagnation Properties ----
 # stagnation pressure ratio across normal shock: po2/po1
@@ -153,6 +168,9 @@ def Mach_at_A(Ai_At, Gamma=1.4):
         Area ratio: A/A*.
     Gamma : Float, optional
         Gas Dependent. The default is 1.4 (air).
+    AutoProceed: Bool, optional
+        Toggles if the function will automatically proceed if a solution is not found.
+        I
 
     Returns
     -------
@@ -160,6 +178,8 @@ def Mach_at_A(Ai_At, Gamma=1.4):
         Subsonic and Supersonic Mach number solution.
 
     '''
+    if Ai_At < 1: raise TypeError('Area Ratio MUST be >= 1')
+    
     def FA_ratio(M):
         return -Ai_At + (1/M)*((1 + M**2*(Gamma-1)/2)/((Gamma+1)/2))**((Gamma+1)/(2*Gamma-2))
     
@@ -171,6 +191,8 @@ def Mach_at_A(Ai_At, Gamma=1.4):
     
     # Solve for first root (subsonic solution)
     low_r, high_r = rootsearch(FA_ratio, 0.001, 8, 0.01)
+    if (low_r == None or high_r == None):
+        raise TypeError('Root Search Solution not found')
     Msub = newtonRaphson(FA_ratio,dAR_M,low_r,high_r)
     
     # Solve for second root (sonic solution)
@@ -246,6 +268,9 @@ def Mach_at_PR(Po_P, Gamma=1.4):
     '''
     return np.sqrt(((Po_P)**((Gamma-1)/Gamma) - 1)*2/(Gamma-1))
 
+def A_At_shock(Pb, Po, Ae_At, Gamma=1.4, R=287.1):
+    return None
+
 # __________________________________________
 
 
@@ -255,3 +280,5 @@ def Mach_at_PR(Po_P, Gamma=1.4):
 
 if __name__ == "__main__":
     print('bing bong')
+    print(Mach_at_A(1.13122))
+    
