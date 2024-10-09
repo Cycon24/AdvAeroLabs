@@ -244,6 +244,7 @@ def traverse(vels, aoa, Cd):
     # calculate viscous drag
     Cvisc = Cd0 - Cd
 
+    # calculate percent of total drag for viscous and form drag components
     Cd_per = (Cd/Cd0)*100
     Cvisc_per = (Cvisc/Cd0)*100
     
