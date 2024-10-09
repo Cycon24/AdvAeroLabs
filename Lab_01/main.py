@@ -8,12 +8,13 @@ import pandas as pd
 
 
 # constants
-rho = 1.225
-R = 287
-T = 300.372
-y = 1.4
-mu = 1.73e-5
-l = 6/39.27
+R = 287             # R of air (SI)
+T = 300.372         # tunnel temp (K)
+y = 1.4             # gamma baby
+mu = 1.73e-5        # viscosity of air (SI)
+l = 6/39.27         # airfoil length (m)
+pinf = 98397.16     # barometric pressure (Pa)
+rho = pinf/R/T      # density (kg/m^3)
 
 # import data from files
 presDF = pd.read_csv("Lab_01/NACA_4412_Data.csv")
@@ -69,11 +70,11 @@ def presDist(press, aoa):
     plt.gca().set_aspect("equal")
     plt.grid(); plt.tight_layout()
 
-# # do the plotting (part 2)
-# presDist(pressAOA0, 0)
-# presDist(pressAOA8, 8)
-# presDist(pressAOA10, 10)
-# presDist(pressAOA12, 12)
+# do the plotting (part 2)
+presDist(pressAOA0, 0)
+presDist(pressAOA8, 8)
+presDist(pressAOA10, 10)
+presDist(pressAOA12, 12)
 
 def clcdCalc(press, aoa):
     # determine q
@@ -83,7 +84,7 @@ def clcdCalc(press, aoa):
     CPsu = np.append(press[1][:10]/q, 0)
     CPsl = np.flip(np.append(0, press[1][10:18]/q))
     
-    # split tap locations into upper and lower as well
+    # split tap locations into upper and lower as well, also change lower surface direction to LE -> TE
     xsu = np.append(xs[:10]/100, 1)
     xsl = np.flip(np.append(1, xs[10:18]/100))
     ysu = np.append(ys[:10]/100, 0)
@@ -107,38 +108,54 @@ def clcdCalc(press, aoa):
     Ccu = coef(CPsu, ysu)
     Ccl = coef(CPsl, ysl)
     
-    # determine actual Cn and Cc
+    # determine total Cn and Cc
     Cn = Cnl - Cnu
     Cc = Ccu - Ccl
-    print(f"aoa: {aoa:.0f}")
-    print(f"Cn: {Cn:.3f}, Cc: {Cc:.3f}")
-    print(f"Cnu: {Cnu:.3f}, Cnl: {Cnl:.3f}, Ccu: {Ccu:.3f}, Ccl: {Ccl:.3f}")
+
     # calculate lift and drag coeffs
     Cl = Cn*np.cos(np.deg2rad(aoa)) - Cc*np.sin(np.deg2rad(aoa))
     Cd = Cc*np.cos(np.deg2rad(aoa)) + Cn*np.sin(np.deg2rad(aoa))
-    print(f"Cl: {Cl:.3f}, Cd: {Cd:.3f}")
-    print()
+
     return Cl, Cd
 
-# # calc cl/cd for each airfoil
-# Cl0, Cd0 = clcdCalc(pressAOA0, 0)
-# Cl4, Cd4 = clcdCalc(pressAOA4, 4)
-# Cl6, Cd6 = clcdCalc(pressAOA6, 6)
-# Cl8, Cd8 = clcdCalc(pressAOA8, 8)
-# Cl10, Cd10 = clcdCalc(pressAOA10, 10)
-# Cl12, Cd12 = clcdCalc(pressAOA12, 12)
-# Cl14, Cd14 = clcdCalc(pressAOA14, 14)
-# Cls = np.array([Cl0, Cl4, Cl6, Cl8, Cl10, Cl12, Cl14])
-# Cds = np.array([Cd0, Cd4, Cd6, Cd8, Cd10, Cd12, Cd14])
-# aoas = np.array([0, 4, 6, 8, 10, 12, 14])
+# calc cl/cd for each airfoil
+Cl0, Cd0 = clcdCalc(pressAOA0, 0)
+Cl4, Cd4 = clcdCalc(pressAOA4, 4)
+Cl6, Cd6 = clcdCalc(pressAOA6, 6)
+Cl8, Cd8 = clcdCalc(pressAOA8, 8)
+Cl10, Cd10 = clcdCalc(pressAOA10, 10)
+Cl12, Cd12 = clcdCalc(pressAOA12, 12)
+Cl14, Cd14 = clcdCalc(pressAOA14, 14)
+Cls = np.array([Cl0, Cl4, Cl6, Cl8, Cl10, Cl12, Cl14])
+Cds = np.array([Cd0, Cd4, Cd6, Cd8, Cd10, Cd12, Cd14])
+aoas = np.array([0, 4, 6, 8, 10, 12, 14])
 
-# # Cl/Cd plots
-# plt.figure()
-# plt.plot(aoas, Cls)
-# plt.plot(aoas, Cds)
-# # plt.plot(aoas, Cls/Cds)
-# plt.xlim(0, 14); plt.xlabel("AOA (deg)")
+# Cl/Cd plots for part 4
+plt.figure("CL vs AOA (4)")
+plt.plot(aoas, Cls)
+plt.xlim(0, 14); plt.xlabel("AOA (deg)")
+plt.ylim(0.2, 1); plt.ylabel("$C_L$")
+plt.grid(); plt.tight_layout()
+plt.figure("CD vs AOA (4)")
+plt.plot(aoas, Cds)
+plt.xlim(0, 14); plt.xlabel("AOA (deg)")
+plt.ylim(-0.01, 0.05); plt.ylabel("$C_D$")
+plt.grid(); plt.tight_layout()
+plt.figure("CL vs CD (4)")
+plt.plot(Cds, Cls)
+plt.xlim(-0.01, 0.05); plt.xlabel("$C_D$")
+plt.ylim(0.2, 1); plt.ylabel("$C_L$")
+plt.grid(); plt.tight_layout()
 
+# slope of Cl curve
+coefs = np.polyfit(aoas[0:5], Cls[0:5], 1)
+plt.figure("Curve Fit CL vs AOA (6)")
+plt.plot(aoas, Cls)
+plt.plot(aoas[0:5], coefs[0]*aoas[0:5] + coefs[1], "k--")
+plt.xlim(0, 14); plt.xlabel("AOA (deg)")
+plt.ylim(0.2, 1); plt.ylabel("$C_L$")
+plt.grid(); plt.tight_layout()
+print(f"CL vs AOA slope: {np.rad2deg(coefs[0]):.2f}/rad")
 
 # calculate U for each case
 q0 = np.mean(pressAOA0[0][:])
@@ -154,7 +171,42 @@ Us = np.sqrt(2*qs/rho)
 # calculate Re for each case
 Res = rho*Us*l/mu
 
-# determine stagnation
+# get vars for cd0 calc
+Ms = Us/np.sqrt(y*R*T)
+p0infs = pinf*(1 + (y -1)/2*Ms**2)**(y/(y - 1))
 
+# loop to do numerical integration for cd0
+dycs = np.flip(velsAOA0[0][:]/39.27/l)
+def traverse(vels, aoa, Cd):
+    # determine which U inf and poinf to use
+    if aoa == 0:
+        j = 0
+    elif aoa == 8:
+        j = 3
+    elif aoa == 12:
+        j = 5
+        
+    # do numerical integration
+    Cd0 = 0.
+    vels = np.flip(vels[1])
+    for k in range(len(vels) - 1):
+        Cd0 += (rho*(Us[j]**2 - vels[k]**2))*(dycs[k + 1] - dycs[k])
+    Cd0 *= 1/(p0infs[j] - pinf)
+    
+    # calculate viscous drag
+    Cvisc = Cd - Cd0
+    
+    return Cd0, Cvisc
+
+# do the one for each of the guy
+Cd0AOA0, CviscAOA0 = traverse(velsAOA0/3.281, 0, Cd0)
+Cd0AOA8, CviscAOA8 = traverse(velsAOA8/3.281, 8, Cd8)
+Cd0AOA12, CviscAOA12 = traverse(velsAOA12/3.281, 12, Cd12)
+print(Cd0AOA12, CviscAOA12)
+
+# tabulate data (1)
+ReCd0d = {"AOA": [0, 8, 12], "Re": np.array([Res[0], Res[1], Res[2]]).round(0), "Cd0": np.array([Cd0AOA0, Cd0AOA8, Cd0AOA12]).round(3)}
+ReCd0df = pd.DataFrame(ReCd0d)
+print(ReCd0df)
 
 # plt.show()
