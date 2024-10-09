@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-# constants
+# set constants
 R = 287             # R of air (SI)
 T = 300.372         # tunnel temp (K)
 y = 1.4             # gamma baby
@@ -51,15 +51,44 @@ yps = np.array([0.0013, 0.0147, 0.0271, 0.0489, 0.0669, 0.0814, 0.0919, 0.0980, 
               -0.0249, -0.0274, -0.0286, -0.0288, -0.0274, -0.0250, -0.0226, -0.0180, -0.0140, 
               -0.0100, -0.0065, -0.0039, -0.0022, -0.0016, -0.0013, 0.0013])*scale
 
-# function for plotting pressure dist.
-def presDist(press, aoa):
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   Data Analysis: Part 1
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# generate table of pressure coefficient values
+def presDist(press):
     # determine q
     q = np.mean(press[0][:])
-    
+
     # calculate Cp for each location
     CPs = press[1][:]/q
-    
-    # plot it
+
+    return CPs
+
+CPdistAOA0 = presDist(pressAOA0)
+CPdistAOA4 = presDist(pressAOA4)
+CPdistAOA6 = presDist(pressAOA6)
+CPdistAOA8 = presDist(pressAOA8)
+CPdistAOA10 = presDist(pressAOA10)
+CPdistAOA12 = presDist(pressAOA12)
+CPdistAOA14 = presDist(pressAOA14)
+
+pressDistVals = {"AOA 0": CPdistAOA0, 
+                 "AOA 4": CPdistAOA4, 
+                 "AOA 6": CPdistAOA6,
+                 "AOA 8": CPdistAOA8,
+                 "AOA 10": CPdistAOA10,
+                 "AOA 12": CPdistAOA12,
+                 "AOA 14": CPdistAOA14,
+                 }
+pressDistVals = pd.DataFrame(pressDistVals)
+print(pressDistVals)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   Data Analysis: Part 2
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# function for plotting pressure distribution for AOAs 0, 8, 12
+def presDistPlot(CPs, aoa):
+
     plt.figure(f"CP Dist. AOA={aoa:.0f} deg (2)")
     plt.plot(xs/100*scale, CPs)
     plt.plot(xps, -yps, "k-")
@@ -70,12 +99,15 @@ def presDist(press, aoa):
     plt.gca().set_aspect("equal")
     plt.grid(); plt.tight_layout()
 
-# do the plotting (part 2)
-presDist(pressAOA0, 0)
-presDist(pressAOA8, 8)
-presDist(pressAOA10, 10)
-presDist(pressAOA12, 12)
+# do the plotting
+presDistPlot(CPdistAOA0, 0)
+presDistPlot(CPdistAOA8, 8)
+presDistPlot(CPdistAOA10, 10)
+presDistPlot(CPdistAOA12, 12)
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   Data Analysis: Part 3
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def clcdCalc(press, aoa):
     # determine q
     q = np.mean(press[0][:])
@@ -130,33 +162,29 @@ Cls = np.array([Cl0, Cl4, Cl6, Cl8, Cl10, Cl12, Cl14])
 Cds = np.array([Cd0, Cd4, Cd6, Cd8, Cd10, Cd12, Cd14])
 aoas = np.array([0, 4, 6, 8, 10, 12, 14])
 
-# Cl/Cd plots for part 4
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   Data Analysis: Part 4
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Generate Cl/Cd plots
 plt.figure("CL vs AOA (4)")
 plt.plot(aoas, Cls)
 plt.xlim(0, 14); plt.xlabel("AOA (deg)")
 plt.ylim(0.2, 1); plt.ylabel("$C_L$")
-plt.grid(); plt.tight_layout()
+plt.grid(); plt.title("CL vs AOA"); plt.tight_layout()
 plt.figure("CD vs AOA (4)")
 plt.plot(aoas, Cds)
 plt.xlim(0, 14); plt.xlabel("AOA (deg)")
 plt.ylim(-0.01, 0.05); plt.ylabel("$C_D$")
-plt.grid(); plt.tight_layout()
+plt.grid(); plt.title("CD vs AOA"); plt.tight_layout()
 plt.figure("CL vs CD (4)")
 plt.plot(Cds, Cls)
 plt.xlim(-0.01, 0.05); plt.xlabel("$C_D$")
 plt.ylim(0.2, 1); plt.ylabel("$C_L$")
-plt.grid(); plt.tight_layout()
+plt.grid(); plt.title("CL vs. CD"); plt.tight_layout()
 
-# slope of Cl curve
-coefs = np.polyfit(aoas[0:5], Cls[0:5], 1)
-plt.figure("Curve Fit CL vs AOA (6)")
-plt.plot(aoas, Cls)
-plt.plot(aoas[0:5], coefs[0]*aoas[0:5] + coefs[1], "k--")
-plt.xlim(0, 14); plt.xlabel("AOA (deg)")
-plt.ylim(0.2, 1); plt.ylabel("$C_L$")
-plt.grid(); plt.tight_layout()
-print(f"CL vs AOA slope: {np.rad2deg(coefs[0]):.2f}/rad")
-
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   Data Analysis: Part 5
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # calculate U for each case
 q0 = np.mean(pressAOA0[0][:])
 q4 = np.mean(pressAOA4[0][:])
@@ -171,6 +199,23 @@ Us = np.sqrt(2*qs/rho)
 # calculate Re for each case
 Res = rho*Us*l/mu
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   Data Analysis: Part 6
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# slope of Cl curve
+coefs = np.polyfit(aoas[0:5], Cls[0:5], 1)
+plt.figure("Curve Fit CL vs AOA (6)")
+plt.plot(aoas, Cls)
+plt.plot(aoas[0:5], coefs[0]*aoas[0:5] + coefs[1], "k--")
+plt.xlim(0, 14); plt.xlabel("AOA (deg)")
+plt.ylim(0.2, 1); plt.ylabel("$C_L$")
+plt.title("Curve Fit CL vs AOA (6)")
+plt.grid(); plt.tight_layout()
+print(f"CL vs AOA slope: {np.rad2deg(coefs[0]):.2f}/rad")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   Traverse Data Analysis: Parts 1 & 2
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # get vars for cd0 calc
 Ms = Us/np.sqrt(y*R*T)
 p0infs = pinf*(1 + (y -1)/2*Ms**2)**(y/(y - 1))
@@ -197,18 +242,26 @@ def traverse(vels, aoa, Cd):
     
     # calculate viscous drag
     Cvisc = Cd0 - Cd
+
+    Cd_per = (Cd/Cd0)*100
+    Cvisc_per = (Cvisc/Cd0)*100
     
-    return Cd0, Cvisc
+    return Cd0, Cvisc, Cd_per, Cvisc_per
 
-# do the one for each of the guy
-Cd0AOA0, CviscAOA0 = traverse(velsAOA0/3.281, 0, Cd0)
-Cd0AOA8, CviscAOA8 = traverse(velsAOA8/3.281, 8, Cd8)
-Cd0AOA12, CviscAOA12 = traverse(velsAOA12/3.281, 12, Cd12)
-print(Cd0AOA12, CviscAOA12)
+# calculate 
+Cd0AOA0, CviscAOA0, Cd_perAOA0, Cvisc_perAOA0 = traverse(velsAOA0/3.281, 0, Cd0)
+Cd0AOA8, CviscAOA8, Cd_perAOA8, Cvisc_perAOA8 = traverse(velsAOA8/3.281, 8, Cd8)
+Cd0AOA12, CviscAOA12, Cd_perAOA12, Cvisc_perAOA12 = traverse(velsAOA12/3.281, 12, Cd12)
 
-# tabulate data (1)
-ReCd0d = {"AOA": [0, 8, 12], "Re": np.array([Res[0], Res[1], Res[2]]).round(0), "Cd0": np.array([Cd0AOA0, Cd0AOA8, Cd0AOA12]).round(3)}
+# tabulate data
+ReCd0d = {"AOA": [0, 8, 12], 
+          "Re": np.array([Res[0], Res[1], Res[2]]).round(0), 
+          "Cd0": np.array([Cd0AOA0, Cd0AOA8, Cd0AOA12]).round(3),
+          "Cdvisc": np.array([CviscAOA0, CviscAOA8, CviscAOA12]).round(3),
+          "Cdvisc_per": np.array([Cvisc_perAOA0, Cvisc_perAOA8, Cvisc_perAOA12]).round(1),
+          "Cd": np.array([Cd0, Cd8, Cd12]).round(3),
+          "Cd_per": np.array([Cd_perAOA0, Cd_perAOA8, Cd_perAOA12]).round(1)}
 ReCd0df = pd.DataFrame(ReCd0d)
 print(ReCd0df)
 
-plt.show()
+# plt.show()
