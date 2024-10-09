@@ -177,6 +177,7 @@ p0infs = pinf*(1 + (y -1)/2*Ms**2)**(y/(y - 1))
 
 # loop to do numerical integration for cd0
 dycs = np.flip(velsAOA0[0][:]/39.27/l)
+
 def traverse(vels, aoa, Cd):
     # determine which U inf and poinf to use
     if aoa == 0:
@@ -191,10 +192,11 @@ def traverse(vels, aoa, Cd):
     vels = np.flip(vels[1])
     for k in range(len(vels) - 1):
         Cd0 += (rho*(Us[j]**2 - vels[k]**2))*(dycs[k + 1] - dycs[k])
+    
     Cd0 *= 1/(p0infs[j] - pinf)
     
     # calculate viscous drag
-    Cvisc = Cd - Cd0
+    Cvisc = Cd0 - Cd
     
     return Cd0, Cvisc
 
@@ -209,4 +211,4 @@ ReCd0d = {"AOA": [0, 8, 12], "Re": np.array([Res[0], Res[1], Res[2]]).round(0), 
 ReCd0df = pd.DataFrame(ReCd0d)
 print(ReCd0df)
 
-# plt.show()
+plt.show()
