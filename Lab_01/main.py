@@ -205,11 +205,12 @@ Res = rho*Us*l/mu
 # slope of Cl curve
 coefs = np.polyfit(aoas[0:5], Cls[0:5], 1)
 plt.figure("Curve Fit CL vs AOA (6)")
-plt.plot(aoas, Cls)
-plt.plot(aoas[0:5], coefs[0]*aoas[0:5] + coefs[1], "k--")
+plt.plot(aoas, Cls, label="$C_L$")
+plt.plot(aoas[0:5], coefs[0]*aoas[0:5] + coefs[1], "k--", label="Slope = 2.47/rad")
 plt.xlim(0, 14); plt.xlabel("AOA (deg)")
 plt.ylim(0.2, 1); plt.ylabel("$C_L$")
-plt.title("Curve Fit CL vs AOA (6)")
+plt.title("Curve Fit CL vs AOA")
+plt.legend(loc="lower right")
 plt.grid(); plt.tight_layout()
 print(f"CL vs AOA slope: {np.rad2deg(coefs[0]):.2f}/rad")
 
@@ -264,4 +265,4 @@ ReCd0d = {"AOA": [0, 8, 12],
 ReCd0df = pd.DataFrame(ReCd0d)
 print(ReCd0df)
 
-# plt.show()
+plt.show()
