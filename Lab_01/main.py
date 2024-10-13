@@ -17,8 +17,8 @@ pinf = 98397.16     # barometric pressure (Pa)
 rho = pinf/R/T      # density (kg/m^3)
 
 # import data from files
-presDF = pd.read_csv("Lab_01/NACA_4412_Data.csv")
-travDF = pd.read_csv("Lab_01/traverse.csv")
+presDF = pd.read_csv("NACA_4412_Data.csv") # Lab_01/
+travDF = pd.read_csv("traverse.csv")
 
 # converting to numpy arrays
 # [0][:] returns dynamic press (psi), [1][:] returns surface pres (psi)
@@ -237,9 +237,10 @@ def traverse(vels, aoa, Cd):
     Cd0 = 0.
     vels = np.flip(vels[1])
     for k in range(len(vels) - 1):
-        Cd0 += (rho*(Us[j]**2 - vels[k]**2))*(dycs[k + 1] - dycs[k])
+        Cd0 += (rho*(max(vels)**2 - vels[k]**2))*(dycs[k + 1] - dycs[k])
     
-    Cd0 *= 1/(p0infs[j] - pinf)
+    
+    Cd0 *= 1/(p0infs[j] - pinf) # Good
     
     # calculate viscous drag
     Cvisc = Cd0 - Cd
