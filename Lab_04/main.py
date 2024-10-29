@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import sys
-from scipy.optimize import curve_fit
+from sklearn.linear_model import LinearRegression
 
 # Set constants
 R = 287             # R of air (SI)
@@ -17,6 +17,7 @@ rho = pinf/R/T      # density (kg/m^3)
 Sref = 64/1550      # wing area (m^2)
 MAC = 4/3.281       # mean aerodynamic chord (m)
 Fusl = 10.1/3.281   # fuselage length (m)
+AR = 2.             # aspect ratio
 
 # Import data from file
 cwd = os.getcwd()
@@ -67,13 +68,15 @@ for i in range(5):
     Aspeed = np.sqrt((2*q)/rho)
 
     # Calculate parasitic drag coefficient and Reynold's number (2a)
-    Cd0s.append(D/(q*Sref))
+    Cd0s.append(D/(q*Sref)) # for AoA = 0, Cd0 = CD
     ReMACs.append((rho*Aspeed*MAC)/mu)
     ReFUSEs.append((rho*Aspeed*Fusl)/mu)
 
     # Calculate lift and side force coefficients (2b)
-    CLs.append(L/(q*Sref))
-    CYs.append(Y/(q*Sref))
+    CL = L/(q*Sref)
+    CY = Y/(q*Sref)
+    CLs.append(CL)
+    CYs.append(CY)
 
 # Tabulate calculated values with data to verify 0 AoA and yaw angle (2c)
 ReCs = {"Case": [1, 2, 3, 4, 5], 
@@ -116,6 +119,7 @@ AoAs = [0., 4., 6., 8., 10., 12.]
 CLs = []
 CDs = []
 CMs = []
+Cd0s = []
 
 AFs = []
 NFs = []
@@ -138,9 +142,14 @@ for i in range(11):
         D = AF*np.cos(a) + NF*np.sin(a)
 
         # Calculate CL, CD and CM (3a)
-        CLs.append(L/(q*Sref))
-        CDs.append(D/(q*Sref))
-        CMs.append(PM/(q*Sref*MAC))
+        CL = L/(q*Sref)
+        CD = D/(q*Sref)
+        CM = PM/(q*Sref*MAC)
+        CLs.append(CL)
+        CDs.append(CD)
+        CMs.append(CM)
+
+        # Cd0s.append(D - (1/(np.pi*AR*0.8))*CL**2)
 
     else:
         i += 1
@@ -186,11 +195,39 @@ plt.grid(); plt.tight_layout()
 # Plot CL vs CD and estimate K (3e)
 #### NEED TO FIGURE THIS PART OUT STILL ####
 
+# Assuming Cd0 from AoA = 0 case
+Cd0 = CDs[0]
+
+# CD - Cd0
+CDs_est = np.array([CDs - Cd0]).reshape(-1,1)
+
+CLs_copy = CLs.copy()
+CLs_copy[0] = 0.
+CLs_sq = np.array([CLs])**2
+CLs_sq = CLs_sq.reshape(-1,1)
+
+model = LinearRegression()
+model.fit(CLs_sq, CDs_est)
+
+model = LinearRegression(fit_intercept=False)
+model.fit(CLs_sq, CDs_est)
+K = model.coef_[0]
+
+CDpred = np.linspace(np.array(CDs).min(), np.array(CDs).max(), 100)  # Smooth range of CD values
+CLpred = []
+for i in range(len(CDpred)):
+    # CDpred.append(Cd0 + (K*(CLs_copy[i])**2))
+    CLpred.append(np.sqrt((CDpred[i] - Cd0) / K))  # Solve for CL from CD_pred
+
 plt.figure("Drag due to lift factor, K")
 plt.plot(CDs, CLs, label="$C_L$ vs $C_D$ curve")
-plt.xlim(0,0.009); plt.xlabel("$C_D$")
-plt.ylim(0,0.04); plt.ylabel("$C_L$")
+plt.plot(CDpred, CLpred, label="Fitted Curve, K = ")
+# plt.xlim(0,0.009); 
+plt.xlabel("$C_D$")
+# plt.ylim(0,0.04); 
+plt.ylabel("$C_L$")
 plt.title("$C_L$ vs $C_D$ with K estimation")
+plt.legend(loc='lower right')
 plt.grid(); plt.tight_layout()
 
 # Plot CM vs AoA and estimate the pitching moment derivative (3f)
