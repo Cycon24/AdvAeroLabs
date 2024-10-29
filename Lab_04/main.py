@@ -229,7 +229,7 @@ plt.legend(loc='lower right')
 plt.grid(); plt.tight_layout()
 
 # Plot CM vs AoA and estimate the pitching moment derivative (3f)
-CMa = (CMs[-3] - CMs[0])/(AoAs[-3] - AoAs[0])
+CMa = (CMs[-3] - CMs[0])/(AoAs[-3] - AoAs[0])  # Removing AoAs 10 and 12 deg (stall)
 print(f'\nPart 3f: Pitching Moment Derivative, CMa = {CMa:.6f}\n')
 
 plt.figure("CM vs AOA")
