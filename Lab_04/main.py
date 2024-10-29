@@ -91,7 +91,7 @@ ReCs = {"Case": [1, 2, 3, 4, 5],
         }
 
 ReCsDF = pd.DataFrame(ReCs)
-print('\n', ReCsDF)
+print('\nPart 2c: \n', ReCsDF)
 
 # Generate plots for Cd0 vs ReMAC and Cd0 vs ReFus (2d)
 plt.figure('Cd0 vs ReMAC')
@@ -165,7 +165,7 @@ AoACs = {"Case": [3, 6, 7, 8, 9, 10],
          "CM": CMs
         }
 AoACsDF = pd.DataFrame(AoACs)
-print('\n', AoACsDF)
+print('\nPart 3b: \n', AoACsDF)
 
 # Plot CL vs. AoA, plus generate lift curve slope (3c)
 coefs = np.polyfit(AoAs[0:3], CLs[0:3], 1)
@@ -182,7 +182,7 @@ plt.title("$C_L$ vs AoA")
 plt.legend(loc='lower right')
 plt.grid(); plt.tight_layout()
 
-print(f"\nCL vs AOA slope: {(coefs[0]):.4f}/deg or {np.rad2deg(coefs[0]):.4f}/rad")
+print(f"\nPart 3c: CL vs AOA slope: {(coefs[0]):.4f}/deg or {np.rad2deg(coefs[0]):.4f}/rad")
 
 # Plot CL vs CD (3d)
 plt.figure("CL vs CD")
@@ -193,55 +193,53 @@ plt.title("$C_L$ vs $C_D$")
 plt.grid(); plt.tight_layout()
 
 # Plot CL vs CD and estimate K (3e)
-#### NEED TO FIGURE THIS PART OUT STILL ####
-
-# Assuming Cd0 from AoA = 0 case
-Cd0 = CDs[0]
+Cd0 = CDs[0] # Assuming Cd0 from AoA = 0 case
 
 # CD - Cd0
 CDs_est = np.array([CDs - Cd0]).reshape(-1,1)
+CDs_est = CDs_est[:-2]  # Removing AoAs 10 and 12 deg (stall)
 
+# CL^2
 CLs_copy = CLs.copy()
 CLs_copy[0] = 0.
 CLs_sq = np.array([CLs])**2
 CLs_sq = CLs_sq.reshape(-1,1)
+CLs_sq = CLs_sq[:-2]    # Removing AoAs 10 and 12 deg (stall)
 
-model = LinearRegression()
-model.fit(CLs_sq, CDs_est)
-
+# Carry out linear regression to determine K
 model = LinearRegression(fit_intercept=False)
 model.fit(CLs_sq, CDs_est)
 K = model.coef_[0]
 
-CDpred = np.linspace(np.array(CDs).min(), np.array(CDs).max(), 100)  # Smooth range of CD values
+print(f'\nPart 3e: Estimated drag due to lift factor, K = {K[0]:.2f}')
+
+# Re-calculate CLs across span of CD values with new K
+CDpred = np.linspace(np.array(CDs[:-2]).min(), np.array(CDs[:-2]).max(), 100)
 CLpred = []
 for i in range(len(CDpred)):
-    # CDpred.append(Cd0 + (K*(CLs_copy[i])**2))
-    CLpred.append(np.sqrt((CDpred[i] - Cd0) / K))  # Solve for CL from CD_pred
+    CLpred.append(np.sqrt((CDpred[i] - Cd0) / K)) 
 
 plt.figure("Drag due to lift factor, K")
 plt.plot(CDs, CLs, label="$C_L$ vs $C_D$ curve")
-plt.plot(CDpred, CLpred, label="Fitted Curve, K = ")
-# plt.xlim(0,0.009); 
-plt.xlabel("$C_D$")
-# plt.ylim(0,0.04); 
-plt.ylabel("$C_L$")
+plt.plot(CDpred, CLpred, label="Fitted Curve, K = 1.40")
+plt.xlim(0,0.009); plt.xlabel("$C_D$")
+plt.ylim(0,0.04); plt.ylabel("$C_L$")
 plt.title("$C_L$ vs $C_D$ with K estimation")
 plt.legend(loc='lower right')
 plt.grid(); plt.tight_layout()
 
 # Plot CM vs AoA and estimate the pitching moment derivative (3f)
-#### NEED TO FINISH UP ####
+CMa = (CMs[-3] - CMs[0])/(AoAs[-3] - AoAs[0])
+print(f'\nPart 3f: Pitching Moment Derivative, CMa = {CMa:.6f}\n')
 
 plt.figure("CM vs AOA")
-plt.plot(AoAs, CMs)
+plt.plot(AoAs, CMs, label="$C_M$")
+plt.plot([0., 8.,], [CMs[0], CMs[-3]], "k--", label="Slope = 0.000861/deg")
 plt.xlim(0, 12); plt.xlabel("AoA (deg)")
 plt.ylim(0,0.008); plt.ylabel("$C_M$")
 plt.title("$C_M$ vs AoA")
+plt.legend(loc='lower right')
 plt.grid(); plt.tight_layout()
-
-CMa = (CMs[-1] - CMs[0])/(AoAs[-1] - AoAs[0])
-print(CMa)
 
 plt.show()
 
