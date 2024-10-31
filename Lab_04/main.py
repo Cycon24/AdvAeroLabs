@@ -57,6 +57,7 @@ casesDF['Air Speed'] = casesDF['Air Speed']/3.281                   # ft/s to m/
 Cd0s = []
 ReMACs = []
 ReFUSEs = []
+Aspeeds = []
 CLs = []
 CYs = []
 
@@ -66,6 +67,7 @@ for i in range(5):
     Y = casesDF['Side Force'].iloc[i]
     q = casesDF['Dynamic Pressure'].iloc[i]
     Aspeed = np.sqrt((2*q)/rho)
+    Aspeeds.append(Aspeed)
 
     # Calculate parasitic drag coefficient and Reynold's number (2a)
     Cd0s.append(D/(q*Sref)) # for AoA = 0, Cd0 = CD
@@ -80,14 +82,15 @@ for i in range(5):
 
 # Tabulate calculated values with data to verify 0 AoA and yaw angle (2c)
 ReCs = {"Case": [1, 2, 3, 4, 5], 
-         "ReMAC": ReMACs, 
-         "ReFus": ReFUSEs,
-         "Axial Force, N": casesDF['Axial Force'][0:5].tolist(),
-         "Normal Force, N": casesDF['Normal Force'][0:5].tolist(),
-         "Side Force, N": casesDF['Side Force'][0:5].tolist(),
-         "Cd0": Cd0s,
-         "CL": CLs,
-         "CY": CYs
+        "Airspeed, m/s": Aspeeds,
+        "ReMAC": ReMACs, 
+        "ReFus": ReFUSEs,
+        "Axial Force, N": casesDF['Axial Force'][0:5].tolist(),
+        "Normal Force, N": casesDF['Normal Force'][0:5].tolist(),
+        "Side Force, N": casesDF['Side Force'][0:5].tolist(),
+        "Cd0": Cd0s,
+        "CL": CLs,
+        "CY": CYs
         }
 
 ReCsDF = pd.DataFrame(ReCs)
@@ -175,7 +178,7 @@ for i in range(len(AoAs)):
 
 plt.figure("CL vs AOA")
 plt.plot(AoAs, CLs, label="$C_L$")
-plt.plot(AoAs[0:3], slope[0:3], "k--", label="Slope = 0.0045/deg")
+plt.plot(AoAs[0:3], slope[0:3], "k--", label="Lift Curve Slope = 0.0045/deg")
 plt.xlim(0, 12); plt.xlabel("AoA (deg)")
 plt.ylim(0,0.04); plt.ylabel("$C_L$")
 plt.title("$C_L$ vs AoA")
@@ -234,13 +237,13 @@ print(f'\nPart 3f: Pitching Moment Derivative, CMa = {CMa:.6f}\n')
 
 plt.figure("CM vs AOA")
 plt.plot(AoAs, CMs, label="$C_M$")
-plt.plot([0., 8.,], [CMs[0], CMs[-3]], "k--", label="Slope = 0.000861/deg")
+plt.plot([0., 8.,], [CMs[0], CMs[-3]], "k--", label="Pitching Moment Derivative = 0.000861/deg")
 plt.xlim(0, 12); plt.xlabel("AoA (deg)")
 plt.ylim(0,0.008); plt.ylabel("$C_M$")
 plt.title("$C_M$ vs AoA")
 plt.legend(loc='lower right')
 plt.grid(); plt.tight_layout()
 
-plt.show()
+# plt.show()
 
 
