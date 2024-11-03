@@ -15,8 +15,8 @@ mu = 1.73e-5        # viscosity of air (SI)
 pinf = 99187.324    # barometric pressure (Pa)
 rho = pinf/R/T      # density (kg/m^3)
 Sref = 64/1550      # wing area (m^2)
-MAC = 4/3.281       # mean aerodynamic chord (m)
-Fusl = 10.1/3.281   # fuselage length (m)
+MAC = 4/39.37       # mean aerodynamic chord (m)
+Fusl = 10.1/39.37   # fuselage length (m)
 AR = 2.             # aspect ratio
 
 # Import data from file
@@ -38,12 +38,12 @@ casesDF['Side Force'] = casesDF['Side Force']*-1
 casesDF['Pitching Moment'] = casesDF['Pitching Moment']*-1
 
 # Convert all data values to SI
-casesDF['Side Force'] = casesDF['Side Force']/4.448                 # lbf to N
+casesDF['Side Force'] = casesDF['Side Force']*4.448                 # lbf to N
 casesDF['Pitching Moment'] = casesDF['Pitching Moment']*0.119825    # lbf*in to N*m
-casesDF['Normal Force'] = casesDF['Normal Force']/4.448             # lbf to N
+casesDF['Normal Force'] = casesDF['Normal Force']*4.448             # lbf to N
 casesDF['Yawing Moment'] = casesDF['Yawing Moment']*0.119825        # lbf*in to N*m
 casesDF['Rolling Moment'] = casesDF['Rolling Moment']*0.119825      # lbf*in to N*m
-casesDF['Axial Force'] = casesDF['Axial Force']/4.448               # lbf to N
+casesDF['Axial Force'] = casesDF['Axial Force']*4.448               # lbf to N
 casesDF['Dynamic Pressure'] = casesDF['Dynamic Pressure']*6894.76   # psi to Pa
 casesDF['Static Pressure'] = casesDF['Static Pressure']*6894.76     # psi to Pa
 casesDF['Air Speed'] = casesDF['Air Speed']/3.281                   # ft/s to m/s
@@ -99,15 +99,16 @@ print('\nPart 2c: \n', ReCsDF)
 # Generate plots for Cd0 vs ReMAC and Cd0 vs ReFus (2d)
 plt.figure('Cd0 vs ReMAC')
 plt.plot(ReMACs, Cd0s)
-plt.xlabel('$Re_{MAC}$'); plt.xlim(0,7000000)
-plt.ylabel('$C_{d0}$'); plt.ylim(0.0006,0.0012)
+plt.xlabel('$Re_{MAC}$'); plt.xlim(0,500000)
+plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
+plt.ylabel('$C_{d0}$'); plt.ylim(0.012,0.024)
 plt.title('$C_{d0}$ vs $Re_{MAC}$')
 plt.grid(); plt.tight_layout()
 
 plt.figure('Cd0 vs ReFus')
 plt.plot(ReFUSEs, Cd0s)
-plt.xlabel('$Re_{fus}$'); plt.xlim(0,16000000)
-plt.ylabel('$C_{d0}$'); plt.ylim(0.0006,0.0012)
+plt.xlabel('$Re_{fus}$'); plt.xlim(0,1400000)
+plt.ylabel('$C_{d0}$'); plt.ylim(0.012,0.024)
 plt.title('$C_{d0}$ vs $Re_{fus}$')
 plt.grid(); plt.tight_layout()
 
@@ -178,9 +179,9 @@ for i in range(len(AoAs)):
 
 plt.figure("CL vs AOA")
 plt.plot(AoAs, CLs, label="$C_L$")
-plt.plot(AoAs[0:3], slope[0:3], "k--", label="Lift Curve Slope = 0.0045/deg")
-plt.xlim(0, 12); plt.xlabel("AoA (deg)")
-plt.ylim(0,0.04); plt.ylabel("$C_L$")
+plt.plot(AoAs[0:3], slope[0:3], "k--", label="Lift Curve Slope = 0.089/deg")
+plt.xlim(0,12); plt.xlabel("AoA (deg)")
+plt.ylim(0,0.8); plt.ylabel("$C_L$")
 plt.title("$C_L$ vs AoA")
 plt.legend(loc='lower right')
 plt.grid(); plt.tight_layout()
@@ -190,8 +191,8 @@ print(f"\nPart 3c: CL vs AOA slope: {(coefs[0]):.4f}/deg or {np.rad2deg(coefs[0]
 # Plot CL vs CD (3d)
 plt.figure("CL vs CD")
 plt.plot(CDs, CLs)
-plt.xlim(0,0.009); plt.xlabel("$C_D$")
-plt.ylim(0,0.04); plt.ylabel("$C_L$")
+plt.xlim(0,0.2); plt.xlabel("$C_D$")
+plt.ylim(0,0.8); plt.ylabel("$C_L$")
 plt.title("$C_L$ vs $C_D$")
 plt.grid(); plt.tight_layout()
 
@@ -224,9 +225,9 @@ for i in range(len(CDpred)):
 
 plt.figure("Drag due to lift factor, K")
 plt.plot(CDs, CLs, label="$C_L$ vs $C_D$ curve")
-plt.plot(CDpred, CLpred, label="Fitted Curve, K = 1.40")
-plt.xlim(0,0.009); plt.xlabel("$C_D$")
-plt.ylim(0,0.04); plt.ylabel("$C_L$")
+plt.plot(CDpred, CLpred, label="Fitted Curve, K = 0.07")
+plt.xlim(0,0.2); plt.xlabel("$C_D$")
+plt.ylim(0,0.8); plt.ylabel("$C_L$")
 plt.title("$C_L$ vs $C_D$ with K estimation")
 plt.legend(loc='lower right')
 plt.grid(); plt.tight_layout()
@@ -237,13 +238,13 @@ print(f'\nPart 3f: Pitching Moment Derivative, CMa = {CMa:.6f}\n')
 
 plt.figure("CM vs AOA")
 plt.plot(AoAs, CMs, label="$C_M$")
-plt.plot([0., 8.,], [CMs[0], CMs[-3]], "k--", label="Pitching Moment Derivative = 0.000861/deg")
-plt.xlim(0, 12); plt.xlabel("AoA (deg)")
-plt.ylim(0,0.008); plt.ylabel("$C_M$")
+plt.plot([0., 8.,], [CMs[0], CMs[-3]], "k--", label="Pitching Moment Derivative = 0.01/deg")
+plt.xlim(0,12); plt.xlabel("AoA (deg)")
+plt.ylim(0,0.1); plt.ylabel("$C_M$")
 plt.title("$C_M$ vs AoA")
 plt.legend(loc='lower right')
 plt.grid(); plt.tight_layout()
 
-# plt.show()
+plt.show()
 
 
