@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import sys
-from sklearn.linear_model import LinearRegression
+# from sklearn.linear_model import LinearRegression
 
 # Set constants
 R = 287             # R of air (SI)
@@ -21,7 +21,7 @@ AR = 2.             # aspect ratio
 
 # Import data from file
 cwd = os.getcwd()
-data_loc = str(cwd + '/Lab_04/Lab4_AllData.csv')
+data_loc = str(cwd + '\\Lab4_AllData.csv')
 alldataDF = pd.read_csv(data_loc)
 alldataDF.columns = alldataDF.columns.str.strip()
 
