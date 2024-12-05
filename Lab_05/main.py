@@ -101,5 +101,38 @@ def contourPlot(V, deg):
 for V in vs:
     for deg in degs:
         contourPlot(V, deg)
+        
+# pull out pressure vals at specific locs
+locs = np.array([0.2, 0.44, 0.6, 0.8, 0.9])
 
-# plt.show()
+# select points along midpoint of wing
+root = np.array([11., 3.])*ratio      # root location (pix)
+tip = np.array([0.5, 3.])*ratio       # tip loc (pix)
+b = root[0] - tip[0]                  # span (pix)
+
+# get analysis locations based on span
+locsx = np.array([b*(1 - loc) for loc in locs])
+locsy = np.array([root[1] for _ in range(len(locs))])
+
+# pull out pressure vals at location
+def pressPlot(V, deg, locsx, locsy):
+    # get cp data
+    image_array = image_data[(V, deg)]
+    cps = cpsC(V, image_array)
+    
+    # get press at each location
+    press = np.array([np.mean(cps[int(locsy[i]) - 5:int(locsy[i] + 5), int(locsx[i]) - 5: int(locsx[i] + 5)]) for i in range(len(locsx))])
+    plt.plot(locs, press, label=f"{deg:.1f}$^\circ$", linewidth=2)
+
+# plot contours
+plt.figure()
+[pressPlot(150, deg, locsx, locsy) for deg in degs]
+plt.legend(loc="upper left", fontsize=12)
+plt.xlim(0, 1); plt.ylim(-4, 0)
+plt.xlabel("Spanwise Location (y/b)"); plt.ylabel("Pressure Coefficient $C_P$")
+plt.title("V=150 ft/s")
+plt.gca().invert_yaxis()
+plt.grid(); plt.tight_layout()
+plt.savefig(r"Lab_05/figs/V150prescont.png", dpi=300)
+
+plt.show()
