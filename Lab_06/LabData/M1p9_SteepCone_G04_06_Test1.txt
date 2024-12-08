@@ -1,3 +1,5 @@
+Stagnation Pressure	Static Pressure	Stagnation Temperature	Manifold Pressure	Tank Pressure	Mach Number	Velocity	Static Temperature	Mass Flow	Static Density	Reynold's Number
+psia	psia	degF	psig	psig	N/A	m/s	degF	kg/s	kg/m^3	N/A
 14.218	14.293	84.741	-0.051	-302.171	0.000	0.000	84.741	0.000	1.139	0.000
 14.227	14.292	84.606	-0.052	-302.176	0.000	0.000	84.606	0.000	1.139	0.000
 14.217	14.293	84.619	-0.055	-302.180	0.000	0.000	84.619	0.000	1.140	0.000
